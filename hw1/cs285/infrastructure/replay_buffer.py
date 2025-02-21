@@ -18,7 +18,7 @@ class ReplayBuffer(object):
         self.terminals = None
 
     def __len__(self):
-        if self.obs:
+        if self.obs.size > 0:
             return self.obs.shape[0]
         else:
             return 0
@@ -34,8 +34,9 @@ class ReplayBuffer(object):
         observations, actions, rewards, next_observations, terminals = (
             convert_listofrollouts(paths, concat_rew))
 
+        # initial state (No rollouts)
         if self.obs is None:
-            self.obs = observations[-self.max_size:]
+            self.obs = observations[-self.max_size:] # store last max_size elements ex) [1,2,3,4,5], max_size=3 -> [3,4,5]
             self.acs = actions[-self.max_size:]
             self.rews = rewards[-self.max_size:]
             self.next_obs = next_observations[-self.max_size:]
