@@ -2,7 +2,7 @@
 
 ## cartpole
 
-![](./hw2_pg_cartpole_small.png)
+![](./hw2_pg_cartpole.png)
 
 ## cartpole_1b
 
