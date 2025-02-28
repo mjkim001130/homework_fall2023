@@ -89,6 +89,8 @@ class PGAgent(nn.Module):
         # step 4: if needed, use all datapoints (s_t, a_t, q_t) to update the PG critic/baseline
         if self.critic is not None:
             # [x]: perform `self.baseline_gradient_steps` updates to the critic/baseline network
+            for i in range(self.baseline_gradient_steps):
+                self.critic.update(obs, q_values)
             critic_info: dict = self.critic.update(obs, q_values)
 
             info.update(critic_info)
@@ -125,7 +127,7 @@ class PGAgent(nn.Module):
         """
         if self.critic is None:
             # TODO: if no baseline, then what are the advantages?
-            advantages = None
+            advantages = q_values
         else:
             # TODO: run the critic and use it as a baseline
             values = None
@@ -181,10 +183,11 @@ class PGAgent(nn.Module):
         def _discounted_return is 0 to T 
         """
         # [x] : Implement this function
-        discounted_rewards_to_go = []
         T = len(rewards)
+        discounted_rewards_to_go = [] * T
+
         for t in range(T):
-            discounted_rewards_to_go = 0.0
+            cumulative_reward = 0.0
             for k in range(t, T):
                 cumulative_reward += self.gamma**(k-t) * rewards[k]
             discounted_rewards_to_go.append(cumulative_reward)
