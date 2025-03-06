@@ -126,18 +126,18 @@ class PGAgent(nn.Module):
         Operates on flat 1D NumPy arrays.
         """
         if self.critic is None:
-            # TODO: if no baseline, then what are the advantages?
-            advantages = q_values
+            # [x]: if no baseline, then what are the advantages?
+            advantages = q_values.copy()
         else:
-            # TODO: run the critic and use it as a baseline
-            values = None
+            # [x]: run the critic and use it as a baseline
+            values = ptu.to_numpy(self.critic(ptu.from_numpy(obs))).reshape(-1)
             assert values.shape == q_values.shape
 
             if self.gae_lambda is None:
-                # TODO: if using a baseline, but not GAE, what are the advantages?
-                advantages = None
+                # [x]: if using a baseline, but not GAE, what are the advantages?
+                advantages = q_values - values # A(s_t, a_t) = Q(s_t, a_t) - V(s_t)
             else:
-                # TODO: implement GAE
+                # [x]: implement GAE
                 batch_size = obs.shape[0]
 
                 # HINT: append a dummy T+1 value for simpler recursive calculation
@@ -145,15 +145,16 @@ class PGAgent(nn.Module):
                 advantages = np.zeros(batch_size + 1)
 
                 for i in reversed(range(batch_size)):
-                    # TODO: recursively compute advantage estimates starting from timestep T.
+                    # [x]: recursively compute advantage estimates starting from timestep T.
                     # HINT: use terminals to handle edge cases. terminals[i] is 1 if the state is the last in its
                     # trajectory, and 0 otherwise.
-                    pass
+                    delta = rewards[i] + self.gamma * values[i + 1] * (1 - terminals[i]) - values[i]
+                    advantages[i] = delta + self.gamma * self.gae_lambda *(1 - terminals[i]) * advantages[i + 1]
 
                 # remove dummy advantage
                 advantages = advantages[:-1]
 
-        # TODO: normalize the advantages to have a mean of zero and a standard deviation of one within the batch
+        # [x]: normalize the advantages to have a mean of zero and a standard deviation of one within the batch
         if self.normalize_advantages:
             mean = np.mean(advantages)
             std = np.std(advantages) + 1e-8 # NOTE: if all Q values are same, then std will be 0. so add small value to avoid division by zero

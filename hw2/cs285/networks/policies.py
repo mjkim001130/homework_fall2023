@@ -110,7 +110,10 @@ class MLPPolicyPG(MLPPolicy):
         # loss = \frac{1}{N} \sum_{i=1}^{N} \log \pi(a_i | s_i) * reward
 
         dist = self.forward(obs)
-        log_prob = dist.log_prob(actions)
+        if self.discrete:
+            log_prob = dist.log_prob(actions)
+        else:
+            log_prob = dist.log_prob(actions).sum(axis=-1)
 
         loss = -(log_prob * advantages).mean()
 
